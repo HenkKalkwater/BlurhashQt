@@ -1,7 +1,7 @@
 #include "blurhash.h"
 
 BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &requestedSize) {
-    // Parse urls in the form of "<blurhash>
+    // Parse urls in the form of "<blurhash>"?punch=<punch>
     QUrl request(id);
     QString blurhash = request.path();
     QUrlQuery params(request.query());
@@ -13,8 +13,6 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &req
         if (ok) punch = parsed;
     }
 
-    qDebug() << blurhash;
-    qDebug() << "Punch: " << punch;
     if (blurhash.size() < 6) {
         failWithError("Blurhash string too short");
         return;
@@ -22,7 +20,6 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &req
     int numCompEnc = decodeBase83(QStringRef(std::addressof(blurhash), 0, 1));
     int numCompX = (numCompEnc % 9) + 1;
     int numCompY = (numCompEnc / 9) + 1;
-    qDebug() << "compX" << numCompX << ", compY" << numCompY;
     int expectedBlurHashSize = 4 + 2 * numCompX * numCompY;
 
     if (blurhash.size() != expectedBlurHashSize) {
@@ -40,10 +37,8 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &req
         *it = decodeAc(decodeBase83(QStringRef(std::addressof(blurhash), 4 + i * 2, 2)), maxAc * punch);
     }
 
-    qDebug() << "Decoding image";
-    QImage result(requestedSize.isEmpty() ? QSize(numCompX * 100, numCompY * 100) : requestedSize, QImage::Format_ARGB32);
+    QImage result(requestedSize.isEmpty() ? QSize(32, 32) : requestedSize, QImage::Format_ARGB32);
     result.fill(QColor::fromRgb(0, 0, 0));
-    qDebug() << result.size();
 
     for (int y = 0; y < result.height(); y++) {
         for (int x = 0; x < result.width(); x++) {
@@ -60,12 +55,9 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &req
                 }
             }
             QColor color = QColor::fromRgb(linearToSrgb(r), linearToSrgb(g), linearToSrgb(b));
-            //qDebug() << "Color " << color;
             result.setPixelColor(x, y, color);
         }
     }
-    //qDebug() << "Generating image done";
-    qDebug() << result.pixelColor(0, 0).toRgb();
     m_image = std::move(result);
     emit finished();
 }
