@@ -4,10 +4,14 @@
 
 #include <qqml.h>
 
-void initializeEngine(QQmlEngine *engine, const char *uri) {
-    Q_UNUSED(uri)
+void BlurhashPlugin::registerTypes(const char *uri) {
     // @uri nl.netsoj.chris.blurhash
-    //qmlRegisterType<BlurHash>(uri, 1, 0, "BlurHash");
+    Q_UNUSED(uri)
+    qmlRegisterType<BlurhashDummy>(uri, 1, 0, "BlurhashDummy");
+}
+
+void BlurhashPlugin::initializeEngine(QQmlEngine *engine, const char *uri) {
+    Q_UNUSED(uri)
     engine->addImageProvider("blurhash", new BlurHashImageProvider);
 }
 

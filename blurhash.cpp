@@ -1,7 +1,7 @@
 #include "blurhash.h"
 
-BlurHashImageResponse::BlurHashImageResponse(const QString &blurhash, const QSize &requestedSize) {
-    /*// Parse urls in the form of "<blurhash>
+BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &requestedSize) {
+    // Parse urls in the form of "<blurhash>
     QUrl request(id);
     QString blurhash = request.path();
     QUrlQuery params(request.query());
@@ -11,9 +11,10 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &blurhash, const QSiz
         bool ok;
         float parsed = punchString.toFloat(&ok);
         if (ok) punch = parsed;
-    }*/
-    float punch = 1.0;
+    }
 
+    qDebug() << blurhash;
+    qDebug() << "Punch: " << punch;
     if (blurhash.size() < 6) {
         failWithError("Blurhash string too short");
         return;
@@ -21,6 +22,7 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &blurhash, const QSiz
     int numCompEnc = decodeBase83(QStringRef(std::addressof(blurhash), 0, 1));
     int numCompX = (numCompEnc % 9) + 1;
     int numCompY = (numCompEnc / 9) + 1;
+    qDebug() << "compX" << numCompX << ", compY" << numCompY;
     int expectedBlurHashSize = 4 + 2 * numCompX * numCompY;
 
     if (blurhash.size() != expectedBlurHashSize) {
@@ -38,15 +40,18 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &blurhash, const QSiz
         *it = decodeAc(decodeBase83(QStringRef(std::addressof(blurhash), 4 + i * 2, 2)), maxAc * punch);
     }
 
-    QImage result(requestedSize, QImage::Format_ARGB32);
+    qDebug() << "Decoding image";
+    QImage result(requestedSize.isEmpty() ? QSize(numCompX * 100, numCompY * 100) : requestedSize, QImage::Format_ARGB32);
+    result.fill(QColor::fromRgb(0, 0, 0));
+    qDebug() << result.size();
 
     for (int y = 0; y < result.height(); y++) {
         for (int x = 0; x < result.width(); x++) {
             float r = 0, g = 0, b = 0;
             for (int j = 0; j < numCompY; j++) {
                 for (int i = 0; i < numCompX; i++) {
-                    double cosX = cos(pi * i * x / result.width());
-                    double cosY = cos(pi * j * y / result.height());
+                    double cosX = cos(pi * static_cast<double>(x * i) / static_cast<double>(result.width()));
+                    double cosY = cos(pi * static_cast<double>(y * j) / static_cast<double>(result.height()));
                     float basis = static_cast<float>(cosX * cosY);
                     const QVector<float> &color = colors[j * numCompX + i];
                     r += color[0] * basis;
@@ -54,40 +59,44 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &blurhash, const QSiz
                     b += color[2] * basis;
                 }
             }
-            result.setPixelColor(x, y, QColor::fromRgb(linearToSrgb(r), linearToSrgb(g), linearToSrgb(b)));
+            QColor color = QColor::fromRgb(linearToSrgb(r), linearToSrgb(g), linearToSrgb(b));
+            //qDebug() << "Color " << color;
+            result.setPixelColor(x, y, color);
         }
     }
+    //qDebug() << "Generating image done";
+    qDebug() << result.pixelColor(0, 0).toRgb();
     m_image = std::move(result);
     emit finished();
 }
 
 int BlurHashImageResponse::linearToSrgb(float value) const {
-    float v = fmin(0.0, fmax(1.0, value));
-    return v <= 0.0031308f ?
-                static_cast<int>(v * 12.92 * 255 + 0.5f)
-              : static_cast<int>((1.055 * powf(v, (1 / 2.4)) - 0.055f) * 255 + 0.5);
+    float v = fmax(0.0, fmin(1.0, value));
+    return v <= 0.0031308 ?
+                static_cast<int>(v * 12.92 * 255.0 + 0.5)
+              : static_cast<int>((1.055 * powf(v, 1 / 2.4) - 0.055) * 255.0 + 0.5);
 }
 
 QVector<float> BlurHashImageResponse::decodeDc(int colorEnc) const {
-    int r =  colorEnc << 16;
-    int g = (colorEnc << 8 ) & 255;
+    int r =  colorEnc >> 16;
+    int g = (colorEnc >> 8 ) & 255;
     int b =  colorEnc        & 255;
     return { srgbToLinear(r), srgbToLinear(g), srgbToLinear(b) };
 }
 
 float BlurHashImageResponse::srgbToLinear(int colorEnc) const {
     float v = colorEnc / 255.0;
-    return v <= 0.04045f ? (v / 12.92f) : pow((v + 0.055) / 1.055, 2.4);
+    return v <= 0.04045 ? (v / 12.92) : powf((v + 0.055) / 1.055, 2.4);
 }
 
 QVector<float> BlurHashImageResponse::decodeAc(int colorEnc, float maxAc) const {
-    float r = colorEnc / (19 * 19);
-    float g = (colorEnc * 19) % 19;
-    float b = colorEnc % 19;
-    return QVector<float> {
-        copysignf(powf((r - 19) / 9.0, 2), r) * maxAc,
-        copysignf(powf((g - 19) / 9.0, 2), g) * maxAc,
-        copysignf(powf((b - 19) / 9.0, 2), b) * maxAc,
+    int r = colorEnc / (19 * 19);
+    int g = (colorEnc * 19) % 19;
+    int b = colorEnc % 19;
+    return {
+        signPow((r - 9.0) / 9.0, 2.0) * maxAc,
+        signPow((g - 9.0) / 9.0, 2.0) * maxAc,
+        signPow((b - 9.0) / 9.0, 2.0) * maxAc,
     };
 }
 
@@ -98,6 +107,10 @@ int BlurHashImageResponse::decodeBase83(QStringRef ref) const{
         result = result * 83 + val;
     }
     return result;
+}
+
+float BlurHashImageResponse::signPow(float value, float exp) const {
+    return copysignf(powf(abs(value), exp), value);
 }
 
 using Qip = std::pair<QChar, int>;

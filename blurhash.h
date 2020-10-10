@@ -38,6 +38,13 @@ private:
     QVector<float> decodeAc(int colorEnc, float maxAc) const;
     float srgbToLinear(int colorEnc) const;
     int linearToSrgb(float value) const;
+    float signPow(float value, float exp) const;
+};
+
+class BlurhashDummy : public QObject {
+    Q_OBJECT
+public:
+    BlurhashDummy(QObject *parent = nullptr) : QObject(parent) {}
 };
 
 class BlurHashImageProvider : public QQuickAsyncImageProvider {
