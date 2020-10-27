@@ -13,6 +13,8 @@ set(qblurhash-qt_HEADERS
 	blurhash_plugin.h
 	blurhash.h)
 
+option(ENABLE_EXPORT "Enable exporting of targets" ON)
+
 add_library(blurhash-qt ${qt-blurhash_SOURCES})
 target_link_libraries(blurhash-qt PRIVATE Qt5::Core Qt5::Qml Qt5::Quick)
 
@@ -24,9 +26,9 @@ add_custom_command(
     TARGET blurhash-qt
     POST_BUILD
     COMMAND
-        ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_LIST_DIR}/qmldir
-        $<TARGET_FILE_DIR:blurhash-qt>/qmldir
+        ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/qmldir $<TARGET_FILE_DIR:blurhash-qt>/qmldir
 )
 
-install(EXPORT "BlurhashQt" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+if(${ENABLE_EXPORT})
+	install(EXPORT "BlurhashQt" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+endif()
