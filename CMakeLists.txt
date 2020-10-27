@@ -14,7 +14,7 @@ set(qblurhash-qt_HEADERS
 	blurhash.h)
 
 add_library(blurhash-qt ${qt-blurhash_SOURCES})
-target_link_libraries(blurhash-qt Qt5::Core Qt5::Qml Qt5::Quick)
+target_link_libraries(blurhash-qt PRIVATE Qt5::Core Qt5::Qml Qt5::Quick)
 
 install(TARGETS blurhash-qt EXPORT "BlurhashQt" 
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
