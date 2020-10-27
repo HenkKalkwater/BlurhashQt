@@ -20,4 +20,13 @@ install(TARGETS blurhash-qt EXPORT "BlurhashQt"
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+add_custom_command(
+    TARGET blurhash-qt
+    POST_BUILD
+    COMMAND
+        ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_LIST_DIR}/qmldir
+        $<TARGET_FILE_DIR:blurhash-qt>/qmldir
+)
+
 install(EXPORT "BlurhashQt" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
