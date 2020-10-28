@@ -8,7 +8,7 @@ set(QML_PLUGIN_PATH "${CMAKE_INSTALL_LIBDIR}/qt5/qml" CACHE PATH "The path where
 find_package(Qt5 COMPONENTS Core Qml Quick REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
-set(QML_URI_PATH "/nl/netsoj/chris/BlurHash/")
+set(QML_URI_PATH "/nl/netsoj/chris/blurhash/")
 
 set(blurhash-qt_SOURCES
 	src/blurhash_plugin.cpp
