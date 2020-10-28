@@ -12,7 +12,7 @@ BlurHashImageResponse::BlurHashImageResponse(const QString &id, const QSize &req
         float parsed = punchString.toFloat(&ok);
         if (ok) punch = parsed;
     }
-
+	qDebug() << "Handling blurhash " << blurhash << " with punch " << punch;
     if (blurhash.size() < 6) {
         failWithError("Blurhash string too short");
         return;
