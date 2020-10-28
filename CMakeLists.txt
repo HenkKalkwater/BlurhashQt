@@ -28,6 +28,8 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/qmldir $<TARGET_FILE_DIR:blurhash-qt>/qmldir
 )
+install(FILES $<TARGET_FILE_DIR:blurhash-qt>/qmldir
+	DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(${ENABLE_EXPORT})
 	install(EXPORT "BlurhashQt" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
