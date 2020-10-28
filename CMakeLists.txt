@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.11)
 project(blurhash-qt VERSION 1.0.0)
 
+include(GNUInstallDirs)
 option(ENABLE_EXPORT "Enable exporting of targets" ON)
+set(QML_PLUGIN_PATH "${CMAKE_INSTALL_LIBDIR}/qt5/qml" CACHE PATH "The path where QML plugin is installed")
 
 find_package(Qt5 COMPONENTS Core Qml Quick REQUIRED)
-include(GNUInstallDirs)
 set(CMAKE_AUTOMOC ON)
 
-set(QML_URI_PATH "nl/netsoj/chris/BlurHash/")
+set(QML_URI_PATH "/nl/netsoj/chris/BlurHash/")
 
 set(blurhash-qt_SOURCES
 	src/blurhash_plugin.cpp
@@ -22,7 +23,7 @@ target_link_libraries(blurhash-qt PRIVATE Qt5::Core Qt5::Qml Qt5::Quick)
 
 install(TARGETS blurhash-qt EXPORT "BlurhashQt" 
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/${QML_URI_PATH})
+	LIBRARY DESTINATION ${QML_PLUGIN_PATH}/${QML_URI_PATH})
 
 add_custom_command(
     TARGET blurhash-qt
@@ -31,7 +32,7 @@ add_custom_command(
         ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/qmldir $<TARGET_FILE_DIR:blurhash-qt>/qmldir
 )
 install(FILES $<TARGET_FILE_DIR:blurhash-qt>/qmldir
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/${QML_URI_PATH})
+	DESTINATION ${QML_PLUGIN_PATH}/${QML_URI_PATH})
 
 if(${ENABLE_EXPORT})
 	install(EXPORT "BlurhashQt" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
