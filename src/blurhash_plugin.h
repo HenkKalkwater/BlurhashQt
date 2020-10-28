@@ -1,6 +1,7 @@
 #ifndef QTBLURHASH_PLUGIN_H
 #define QTBLURHASH_PLUGIN_H
 
+#include <QObject>
 #include <QQmlExtensionPlugin>
 
 class BlurhashPlugin : public QQmlExtensionPlugin

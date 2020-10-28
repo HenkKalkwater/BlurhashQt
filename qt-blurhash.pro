@@ -8,12 +8,12 @@ uri = nl.netsoj.chris.blurhash
 
 # Input
 SOURCES += \
-        blurhash.cpp \
-        blurhash_plugin.cpp
+        src/blurhash.cpp \
+        src/blurhash_plugin.cpp
 
 HEADERS += \
-        blurhash.h \
-        blurhash_plugin.h
+        src/blurhash.h \
+        src/blurhash_plugin.h
 
 DISTFILES = qmldir
 
