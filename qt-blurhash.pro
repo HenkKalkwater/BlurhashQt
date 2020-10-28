@@ -1,5 +1,5 @@
 TEMPLATE = lib
-TARGET = qt-blurhash
+TARGET = blurhash-qt
 QT += qml quick
 CONFIG += plugin c++11
 
