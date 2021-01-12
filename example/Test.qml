@@ -33,7 +33,7 @@
 		width: parent.width
 		height: width / 3 * 2
 		source: "image://blurhash/" + encodeURIComponent(blurHashText.text) + "?punch=" + punch.value
-		//sourceSize.width: image.width
-		//sourceSize.height: image.height
+		sourceSize.width: 360
+		sourceSize.height: 200
 	}
 }
