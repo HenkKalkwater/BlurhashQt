@@ -7,6 +7,8 @@
 void BlurhashPlugin::registerTypes(const char *uri) {
     // @uri nl.netsoj.chris.blurhash
     Q_UNUSED(uri)
+    // Without registering this dummy object, QML seems to complain
+    // that this module is not installed, even though it is.
     qmlRegisterType<BlurhashDummy>(uri, 1, 0, "BlurhashDummy");
 }
 

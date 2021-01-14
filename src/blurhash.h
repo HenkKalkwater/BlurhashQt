@@ -5,32 +5,28 @@
 #include <utility>
 
 #include <QMap>
+#include <QObject>
 #include <QQuickImageProvider>
 #include <QQuickImageResponse>
 #include <QUrlQuery>
 
+#include <QRunnable>
+#include <QThreadPool>
 #include <QtConcurrent/QtConcurrent>
 
-class BlurHashImageResponse : public QQuickImageResponse {
+class BlurHashImageRunnable : public QObject, public QRunnable {
+    Q_OBJECT
 public:
-    BlurHashImageResponse(const QString &id, const QSize &requestedSize);
+    BlurHashImageRunnable(QString id, QSize requestedSize);
 
-    QQuickTextureFactory *textureFactory() const override {
-        return QQuickTextureFactory::textureFactoryForImage(m_image);
-    }
-
-    void failWithError(QString errorMessage) {
-        m_errorString = errorMessage;
-        emit finished();
-    };
-
-    QString errorString() const override { return m_errorString; }
-
-
+    void run() override;
+signals:
+    void done(QImage result);
+    void error(const QString &message);
 private:
-    int decodeBase83(QStringRef ref) const;
-    QString m_errorString;
-    QImage m_image;
+    QString m_id;
+    QSize m_requestedSize;
+
     const static QMap<QChar, int> base83Map;
     static constexpr double pi = 3.1415926;
 
@@ -39,6 +35,28 @@ private:
     float srgbToLinear(int colorEnc) const;
     int linearToSrgb(float value) const;
     float signPow(float value, float exp) const;
+    int decodeBase83(QStringRef ref) const;
+};
+
+class BlurHashImageResponse : public QQuickImageResponse {
+    Q_OBJECT
+public:
+    BlurHashImageResponse(const QString &id, const QSize &requestedSize);
+
+    QQuickTextureFactory *textureFactory() const override;
+
+
+    QString errorString() const override { return m_errorString; }
+
+
+private:
+    QString m_errorString;
+    QImage m_image;
+
+private slots:
+    void handleDone(QImage result);
+
+    void failWithError(QString errorMessage);
 };
 
 class BlurhashDummy : public QObject {
